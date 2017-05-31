@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
+import firebase from '../../firebase';
 
 import Form from '../Form/Form'
 import ConceptList from '../ConceptList/ConceptList'
@@ -12,7 +13,8 @@ class App extends Component {
   }
 
   saveConcept(concept) {
-      console.log(concept);
+    firebase.database().ref('Testing').push({concept})
+      .then(() => console.log('done'))
   }
 
   render() {
