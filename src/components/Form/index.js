@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import './styles.css';
 
 export default class Form extends Component {
   constructor() {
@@ -9,6 +10,7 @@ export default class Form extends Component {
   handleClick(e) {
     e.preventDefault()
     this.props.handleClick(this.state.concept)
+    this.setState({ concept: '' })
   }
 
   render() {

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import './App.css';
+import './styles.css';
 
-import Form from '../Form/Form'
-import ConceptList from '../ConceptList/ConceptList'
+import Form from '../Form'
+import ConceptList from '../ConceptList'
 // import ConceptList from '../Form/Form'
 
 class App extends Component {
@@ -12,7 +12,7 @@ class App extends Component {
   }
 
   saveConcept(concept) {
-      console.log(concept);
+    this.setState({ concepts: [...this.state.concepts, concept]})
   }
 
   render() {
