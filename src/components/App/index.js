@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
-import './styles.css';
-
 import Form from '../Form'
 import ConceptList from '../ConceptList'
-// import ConceptList from '../Form/Form'
+import firebase from '../../firebase';
+import './styles.css';
 
 class App extends Component {
   constructor() {
@@ -11,8 +10,15 @@ class App extends Component {
     this.state = { concepts: [] }
   }
 
+  componentDidMount() {
+    firebase.database().ref('1611').on('value', (snapshot) => {
+      console.log(snapshot.val());
+    })
+  }
+
   saveConcept(concept) {
-    this.setState({ concepts: [...this.state.concepts, concept]})
+    firebase.database().ref('Testing').push({concept})
+      .then(() => console.log('done'))
   }
 
   render() {
