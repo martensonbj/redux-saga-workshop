@@ -4,11 +4,15 @@ import './styles.css'
 const ConceptList = ({ concepts }) => {
 
     const displayConcepts = () => {
-      return Object.keys(concepts).map((concept, i) => {
-        return (
-          <li key={i}>{concept}</li>
-        )
-      })
+      if(concepts) {
+        return Object.keys(concepts).map((concept, i) => {
+          return (
+            <li key={i}>{concept}</li>
+          )
+        })
+      } else {
+        return <div>Add some concepts!</div>
+      }
     }
 
     console.log(displayConcepts);
