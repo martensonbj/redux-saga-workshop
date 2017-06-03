@@ -1,21 +1,28 @@
-import React, { Component } from 'react';
+import React from 'react';
 import './styles.css'
 
-export default class ConceptList extends Component {
+const ConceptList = ({ concepts }) => {
 
-  getConcepts() {
-    return this.props.concepts.map((concept, i) => (
-      <li key={concept} id={concept}>{ concept }</li>
-    ))
-  }
+    const displayConcepts = () => {
+      if(concepts) {
+        return Object.keys(concepts).map((concept, i) => {
+          return (
+            <li key={i}>{concept}</li>
+          )
+        })
+      } else {
+        return <div>Add some concepts!</div>
+      }
+    }
 
-  render() {
+    console.log(displayConcepts);
     return (
       <section className="concept-list">
         <ul>
-          { this.getConcepts() }
+          { displayConcepts() }
         </ul>
       </section>
     )
-  }
 }
+
+export default ConceptList;
