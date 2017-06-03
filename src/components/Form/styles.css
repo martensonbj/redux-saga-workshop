@@ -48,9 +48,14 @@ input[type="submit"] {
   top: 20px;
 }
 
-input[type="submit"]:hover {
+.btn-enabled:hover {
   cursor: pointer;
   border: 1px solid #aaa;
+}
+
+.btn-disabled:hover {
+  cursor: not-allowed;
+  border: 1px solid #e2e2e2;
 }
 
 input[type="submit"]:focus {
