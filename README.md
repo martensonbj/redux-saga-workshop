@@ -6,8 +6,9 @@
 5) Work through README once timed
 6) Clean up/Follow up
 7) Make sure the final CSS file gets moved into START
-<!-- CLEAN UP COMMENTS ON ALL BRANCHES -->
-<!-- Grab a back up API in case NASA API keys are an issue -->
+
+CLEAN UP COMMENTS ON ALL BRANCHES
+Grab a back up API in case NASA API keys are an issue
 -->
 
 <!-- SLIDES
@@ -18,7 +19,10 @@
 
 <!-- FOLLOW UP:
   - Where does the `sagas.js` library live?
-  - Dig more into "elm architecture"  -->
+  - Dig more into "elm architecture"  
+  - talk about using `import { delay } from redux-saga`
+  - Dig into helper libraries for mocking out sagas in testing
+-->
 
 
 ## Setup
@@ -781,9 +785,3 @@ Make sure to add this reducer to our `reducers/index.js` file so it's included i
 ### Resources
 
 * [Redux Testing/Inspiration for printing Redux logs](https://medium.com/@gethylgeorge/using-redux-saga-to-handle-side-effects-and-testing-it-using-jest-2dff2d59f899)  
-
-
-<!-- Figure out where this repo is starting from -->
-<!-- talk about using `import { delay } from redux-saga` ?? -->
-<!-- Dig into helper libraries for mocking out sagas in testing -->
-<!-- WIRE UP A REDUCER TO TRACK EVERY ACTION THAT FIRES & SHOW IT ON THE DOM  -->
