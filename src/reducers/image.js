@@ -1,12 +1,12 @@
 const initialState = {
-  
+
 }
 
-const backgroundImage = (state = initialState, action) => {
+const image = (state = initialState, action) => {
   switch (action.type) {
     default :
       return state;
   }
 }
 
-export default backgroundImage
+export default image
