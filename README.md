@@ -29,7 +29,7 @@ Clone down this repository and **CHECK OUT THE BRANCH `start`**, run `npm instal
 
 While we get started, please also take a minute to visit the [Nasa Open API](https://api.nasa.gov/index.html#apply-for-an-api-key)  website and apply for an API key - this should be sent to your email address momentarily.  
 
-*I suggest you paste this API key somewhere handy for the next couple hours for copy/paste convenience*
+*I suggest you paste this API key somewhere handy for the next couple hours for copy/paste convenience*  
 
 As mentioned during the intro to this workshop, the Redux workflow revolves around the Redux `store`. The entire goal of this baby app is to fetch a daily image from the Nasa website as soon as the application loads. To do this, we need our app to dispatch an action to make that API call which will then modify state and re render the components that care.  
 
@@ -51,6 +51,8 @@ store.dispatch(getImage()); // <-- NEW CODE
 ```
 
 This is already going to blow up because we haven't wired up any action creators yet, so `getImage()` is undefined.
+
+**[SNIPPET#1]**
 
 ```js
 // actions/index.js  
