@@ -130,6 +130,8 @@ export const getImage = () => (
 
 You'll notice our error message is still there. We are still dealing with our original issue. Redux is trying to dispatch a rather complicated series of functions - which inherently are NOT plain, pure JS objects.  
 
+Think of middleware libraries like big nets in the ocean of your application, each in charge of watching for a particular bit to float through.
+
 Now's the time to add in a middleware library to step in and figure out what to do with this function we are dispatching. To kick things off and for comparison purposes, we'll start with a common library called `redux-thunk`.  
 
 ## Adding Middleware  
