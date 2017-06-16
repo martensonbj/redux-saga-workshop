@@ -306,11 +306,15 @@ const App = ({ image }) => {
     )
   }
 
-  <div className="App--pending">
-    <img  height='75'           src="https://vignette3.wikia.nocookie.net/landbeforetime/images/3/32/Ducky%27s_Offcial_TLBT_Website_Art.jpg/revision/latest/scale-to-width-down/350?cb=20130912041058" alt="Ducky" />
-    <p>You should not eat talking trees. Nope, nope, nope.</p>
-    <small>[under construction]</small>
-  </div>
+  if ( !image.data.hdurl ) {
+    return (
+      <div className="App--pending">
+        <img  height='75'           src="https://vignette3.wikia.nocookie.net/landbeforetime/images/3/32/Ducky%27s_Offcial_TLBT_Website_Art.jpg/revision/latest/scale-to-width-down/350?cb=20130912041058" alt="Ducky" />
+        <p>You should not eat talking trees. Nope, nope, nope.</p>
+        <small>[under construction]</small>
+      </div>
+    )
+  }
 
   return (
     <div className="App">
@@ -904,11 +908,13 @@ export default function* rootSaga() {
 
 ## Saga Effects
 
-Redux Sagas provide us with a few different "effects" and helper methods that scoot things along. We just used `takeEvery`, which "takes" "every" action that matches a pattern it's been given and fires off the next saga when that pattern is matched. Additionally, as we indicated with our `console.log(action)` it appends the ACTION that was fired as the third argument to the function.
+Redux Sagas provide us with a few different "effects" and helper methods that scoot things along. We just used `takeEvery`, which "takes" "every" action that matches a pattern it's been given and fires off the next saga when that pattern is matched.  
 
-The next two we will implement are:  
+Additionally, as we indicated with our `console.log(action)` it appends the ACTION that was fired as the third argument to the function.
 
-* `put`
+The next two we will look at are:  
+
+### `put`
   - Example: `yield put(requestImage())`
   - Tells the middleware to dispatch an action to the redux store.
   - Returns an object of instructions
@@ -926,7 +932,7 @@ done: false
 }
 ```
 
-* `call`
+### `call`  
   - Example: `yield call(fetchImage, ...args)`
   - Used when we need to get data asynchronously, and might need to do some stuff in between (like when you use `fetch` to make an API call)
   - Takes two arguments - a callback, and an optional spread of additional arguments   
@@ -957,15 +963,16 @@ So now let's do something with the `getImageAsync` function we fired off. In thi
 
 To review, we want to:  
 1. Tell redux we are requesting an image, so do the Loader thing.  
-2. Fetch the image in the meantime  
-3. Figure out what to do if stuff breaks  
+2. Fetch the image in the meantime
+3. Store the image in state if things go well
+4. Figure out what to do if stuff breaks  
 
 ```js
 // sagas.js
 import { call, put, takeEvery, all } from 'redux-saga/effects';
 // Pull in our action creators
 import { catchError, requestImage, setImage } from './actions'
-// Grab our fetch function that we haven't made yet
+// Grab our fetch function (that we haven't made yet)
 import { fetchImage } from './fetch'
 
 // ---- additional code ---- //
@@ -991,14 +998,13 @@ import { fetchImage } from './fetch'
     }
   }
 
-  export function* watchGetImage() {
-    yield takeEvery('INITIALIZE_IMAGE_SAGA', getImageAsync);
-  }
 
   // ---- additional code ---- //
 ```
 
-In the `getImageAsync()` we run a `call`, firing off the `fetchImage` function. This allows us to isolate any fetch requests. Let's say we have a big app - it might make sense to put all of our fetch requests in their own file.
+If you look at your browser, you'll see that error.  
+
+In the `getImageAsync()` we run a `call` effect, firing off `fetchImage`. This allows us to isolate any fetch requests. Let's say we have a big app - it might make sense to put all of our fetch requests in their own file. Let's go ahead and do that.  
 
 ```bash
 touch src/fetch.js

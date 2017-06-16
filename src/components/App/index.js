@@ -12,7 +12,7 @@ const App = ({ image }) => {
     )
   }
 
-  if ( !image.hdurl) {
+  if ( !image.data.hdurl ) {
     return (
       <div className="App--pending">
         <img  height='75'           src="https://vignette3.wikia.nocookie.net/landbeforetime/images/3/32/Ducky%27s_Offcial_TLBT_Website_Art.jpg/revision/latest/scale-to-width-down/350?cb=20130912041058" alt="Ducky" />
