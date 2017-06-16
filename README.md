@@ -1,26 +1,3 @@
-<!-- TO DO LIST:
-3) Finish final product screen shot
-5) Work through README once timed
-6) Clean up/Follow up
-7) Make sure the final CSS file gets moved into START
-8) WHY ERROR.ERROR HOW DO YOU OBJECT ASSIGN NESTED OBJECTS
-10) Why Redux Saga instead of Thunk? what'st he benefit?
-
-CLEAN UP COMMENTS ON ALL BRANCHES
-Grab a back up API in case NASA API keys are an issue
--->
-
-<!-- SLIDES
-  - Architecture of a Redux app
-  - Role of Middleware
-  - Finished product/What we are building
--->
-
-<!-- FOLLOW UP:
-  - talk about using `import { delay } from redux-saga`
--->
-
-
 ## Setup
 
 We'll be starting from a boilerplate that already has the structure of a Redux app built out so we can dig straight into the meat of this workshop. I'll be using `npm` commands for my live-coding, but if `yarn` is your jam that's cool too.
@@ -29,7 +6,7 @@ Clone down this repository and **CHECK OUT THE BRANCH `start`**, run `npm instal
 
 While we get started, please also take a minute to visit the [Nasa Open API](https://api.nasa.gov/index.html#apply-for-an-api-key)  website and apply for an API key - this should be sent to your email address momentarily.  
 
-*I suggest you paste this API key somewhere handy for the next couple hours for copy/paste convenience*  
+**I suggest you paste this API key somewhere handy for the next couple hours for copy/paste convenience**  
 
 As mentioned during the intro to this workshop, the Redux workflow revolves around the Redux `store`. The entire goal of this baby app is to fetch a daily image from the Nasa website as soon as the application loads. To do this, we need our app to dispatch an action to make that API call which will then modify state and re render the components that care.  
 
@@ -132,6 +109,7 @@ export const getImage = () => (
       if (!json.error) {
         dispatch(setImage(json))
       } else {
+        // eslint-disable-next-line
         throw {message: json.error.message, code: json.error.code}
       }
     })
@@ -258,7 +236,7 @@ const image = (state = initialState, action) => {
     case `REQUEST_IMAGE` :
       return Object.assign({}, state, { loading: true })
     case `SET_IMAGE` :
-      return Object.assign({}, state, { data: action.data })
+      return Object.assign({}, state, { loading: false, data: action.data })
     case `ERROR` :
       return Object.assign({}, state, { error: action.error })
     default :
@@ -306,12 +284,12 @@ const App = ({ image }) => {
     )
   }
 
-  if ( !image.data.hdurl ) {
+  if ( image.loading || !image.error && !image.data.hdurl ) {
     return (
       <div className="App--pending">
         <img  height='75'           src="https://vignette3.wikia.nocookie.net/landbeforetime/images/3/32/Ducky%27s_Offcial_TLBT_Website_Art.jpg/revision/latest/scale-to-width-down/350?cb=20130912041058" alt="Ducky" />
         <p>You should not eat talking trees. Nope, nope, nope.</p>
-        <small>[under construction]</small>
+        <small>[Loading...]</small>
       </div>
     )
   }
@@ -541,6 +519,7 @@ export const getImage = () => (
       if (!json.error) {
         dispatch(setImage(json))
       } else {
+        // eslint-disable-next-line
         throw {message: json.error.message, code: json.error.code}
       }
     })
@@ -836,12 +815,13 @@ This line tells our redux store to dispatch an action which currently lives in o
 export const getImage = () => (
   dispatch => {
     dispatch(requestImage());
-    return fetch('https://api.nasa.gov/planetary/apod?api_key=EFZIxlP9Ry5aV1KIjYZilvSLqziN5RBOJicPD8W9')
+    return fetch('https://api.nasa.gov/planetary/apod?api_key=YOUR-API-KEY-HERE')
     .then(response => response.json())
     .then(json => {
       if (!json.error) {
         dispatch(setImage(json))
       } else {
+        // eslint-disable-next-line
         throw {message: json.error.message, code: json.error.code}
       }
     })
@@ -1016,13 +996,14 @@ touch src/fetch.js
 
 const handleErrors = (json) => {
     if (json.error) {
+      // eslint-disable-next-line
       throw { message: json.error.message, code: json.error.code}
     }
     return json;
 }
 
 export const fetchImage = () => (
-  fetch('https://api.nasa.gov/planetary/apod?api_key=EFZIxlP9Ry5aV1KIjYZilvSLqziN5RBOJicPD8W9')
+  fetch('https://api.nasa.gov/planetary/apod?api_key=YOUR-API-KEY-HERE')
   .then(response =>  response.json())
   .then(json => handleErrors(json))
   .catch(error => error)
@@ -1051,7 +1032,7 @@ First of all, if you run the existing tests now you'll get some errors. This is 
 
 This also means that now we can isolate what we're testing in a more specific way because our `actions/index.js` file now ONLY contains plain old action creators and return plain old action objects, which are ridiculously easy to test.
 
-Hop into the `__tests__/asyncActions.js` file and skip that first `describe()` block, for now, and create a couple quick files to demonstrate the ease of testing clean redux action creators/reducers:  
+Hop into the `__tests__/asyncActions.js` file and skip that first `describe()` block, then create a couple quick files to demonstrate the ease of testing clean redux action creators/reducers with sagas:  
 
 ```bash
 touch src/__tests__/actions.test.js src/__tests__/reducers.test.js src/__tests__/sagas.test.js
@@ -1118,9 +1099,9 @@ describe('image reducer', () => {
 
 Lucky for us, testing sagas isn't much more complicated.  
 
-To set up this testing file, we need to grab all of the things associated with our sagas. The beauty of using Sagas is that we are now dealing with ES6 Generator functions. We can now run each line of code and test each specific `yield expression` to ensure that we are getting back that plain old JS object with the value we expect.  
+The only cumbersome bit is we need to grab all of the things associated with our sagas. The beauty is that we are now dealing with ES6 Generator functions. This means we can run each line of code and test each specific `yield expression` to ensure that we are getting back that plain old JS object with the value we expect.  
 
-Let's start with our first example `*testSaga()` generator function to see what this looks like.
+Let's start with our first simple generator example `*testSaga()` to see what this looks like.
 
 ```js
 // __tests__/sagas.test.js
@@ -1128,15 +1109,15 @@ Let's start with our first example `*testSaga()` generator function to see what 
 import { takeEvery } from 'redux-saga';
 import { call, put, take } from 'redux-saga/effects';
 
-import { requestImage, setImage, handleError } from '../actions';
+import { requestImage, setImage, catchError } from '../actions';
 import { fetchImage } from '../fetch';
 
 import { testSaga, getImageAsync, watchGetImage } from '../sagas';
 
 describe('test saga', () => {
-  const generator = testSaga();
 
   it('calls the test saga function', () => {
+    const generator = testSaga();
     const testValue = generator.next().value;
 
     expect(testValue).toEqual('WIRED UP!');
@@ -1144,7 +1125,9 @@ describe('test saga', () => {
 });
 ```
 
-That one doesn't have a whole lot going on though so let's add another describe block for the `getImageAsync()` generator to see if it gets more complicated.
+This function only has one yield expression, so we only need to iterate over it once, and assert that we get the value back we expect once.  
+
+Let's add another describe block for the `getImageAsync()` generator to see if it gets more complicated.
 
 
 ```js
@@ -1161,9 +1144,15 @@ describe('getImageAsync', () => {
 });
 ```
 
-You'll notice our test fails. This is because `setImage(data)` needs data! It gets that data from the result of the previous `yield expression`. Think back to that concept of 2 way communication within generators - right now because we are in a fake testing environment, we have to manually run each `generator.next().value` line, the saga library isn't doing that for us.
+WHAAAAT. It failed!
 
-We can TELL OUR GENERATOR 'hey - let's pretend this is what you got back after that last yield expression. Carry on and make sure the rest of the instructions make sense.'. We're essentially stubbing in whatever we want to get back from our API call, and letting our generator move along.  
+That was on purpose.
+
+Look at that third assertion - remember that if things go well, `setImage(data)` needs data! (If you look closely at the failed test you'll notice it's triggering our ERROR action...so technically it's following orders.)
+
+The `setImage(data)` gets that data from the result of the previous `yield expression`. Think back to that concept of 2 way communication within generators - right now because we are in a fake testing environment, we have to manually run each `generator.next().value` line, the saga library isn't doing that for us. But this gives us lots of control.
+
+So now we can just TELL OUR GENERATOR whats up. Like 'hey - let's pretend this is what you got back after that last yield expression. Carry on and make sure the rest of the instructions make sense.'. We're essentially stubbing in whatever we want to get back from our API call, and letting our generator move along.  
 
 ```js
  // Pass data into our generator iterator when we need it to be accessible
@@ -1178,7 +1167,7 @@ it('handles an unsuccessful function', () => {
   const generator = getImageAsync();
 
   const error = {
-    error: 'BROKE STUFF'
+    code: 'BROKE STUFF'
   }
 
   expect(generator.next().value).toEqual(put(requestImage()), 'makes a dispatch to request image ');
@@ -1187,6 +1176,7 @@ it('handles an unsuccessful function', () => {
 });
 ```
 
+BAM.  
 
 ### Resources
 

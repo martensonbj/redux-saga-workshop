@@ -8,7 +8,7 @@ const mockStore = configureMockStore(middleware);
 import * as actions from '../actions';
 
 
-describe('getImage', () => {
+describe.skip('getImage', () => {
 
   afterEach(() => {
     expect(fetchMock.calls().unmatched).toEqual([]);

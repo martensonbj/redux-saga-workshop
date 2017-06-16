@@ -3,15 +3,15 @@ import { catchError, requestImage, setImage } from './actions'
 import { fetchImage } from './fetch'
 
 export function* testSaga() {
-  console.log('Wired up!');
+  // console.log('Wired up!');
   yield 'WIRED UP!'
 }
 
 export function* getImageAsync(action) {
-  console.log(action);
+  // console.log(action);
   yield put(requestImage())
   const data = yield call(fetchImage);
-  if (data && !data.error) {
+  if (data && !data.code) {
     yield put(setImage(data))
   } else {
     yield put(catchError(data))
@@ -29,8 +29,8 @@ export default function* rootSaga() {
   ]);
 }
 
-const gen = getImageAsync();
-console.log(gen.next());
-console.log(gen.next());
-console.log(gen.next());
-console.log(gen.next());
+// const gen = getImageAsync();
+// console.log(gen.next());
+// console.log(gen.next());
+// console.log(gen.next());
+// console.log(gen.next());

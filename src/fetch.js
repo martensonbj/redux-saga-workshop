@@ -1,8 +1,9 @@
 const handleErrors = (json) => {
     if (json.error) {
-      throw { message: json.error.message, code: json.error.code}
+      throw { message: json.error.message, code: json.error.code }
+    } else {
+      return json;
     }
-    return json;
 }
 
 export const fetchImage = () => (
