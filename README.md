@@ -429,8 +429,11 @@ it('dispatches SET_IMAGE when data is received', () => {
   fetchMock.get('*', {
     status: 200,
     body: {
-      url: '',
-      stuff: ''
+      data: {
+        explanation: 'stuff',
+        hdurl: 'things',
+        title: 'pie'
+      },
     }
   });
 
@@ -446,7 +449,7 @@ it('dispatches SET_IMAGE when data is received', () => {
 
   const expectedActions = [
     { type: 'REQUEST_IMAGE' },
-    { type: 'SET_IMAGE', data: {"stuff": "", "url": ""} },
+    { type: 'SET_IMAGE', data: { explanation: 'stuff', hdurl: 'things', title: 'pie' } },
   ]
 
   store.dispatch(actions.getImage()).then(() => {
