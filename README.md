@@ -525,11 +525,17 @@ Let's look back at the action creator that `redux-thunk` steps in to handle :
 export const getImage = () => (
   dispatch => {
     dispatch(requestImage());
-    return fetch('https://api.nasa.gov/planetary/apod?api_key=YOUR-API-KEY-HERE')
+    return fetch('https://api.nasa.gov/planetary/apod?api_key=YOUR_API_KEY_HERE')
     .then(response => response.json())
-    .then(json => dispatch(setImage(json)))
+    .then(json => {
+      if (!json.error) {
+        dispatch(setImage(json))
+      } else {
+        throw {message: json.error.message, code: json.error.code}
+      }
+    })
     .catch(error => dispatch(catchError(error)))
-  };
+  }
 );
 ```  
 
