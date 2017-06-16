@@ -12,6 +12,8 @@ While we get started, please also take a minute to visit the [Nasa Open API](htt
 
 As mentioned during the intro to this workshop, the Redux workflow revolves around the Redux `store`. The entire goal of this baby app is to fetch a daily image from the Nasa website as soon as the application loads. To do this, we need our app to dispatch an action to make that API call which will then modify state and re render the components that care.  
 
+![screenshot](./assets/screenshot.png);
+
 Let's start by wiring up this first, immediate dispatch to fetch an image as soon as the app starts up.  
 
 Update your primary `src/index.js` file with the following:    
