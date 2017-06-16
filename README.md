@@ -33,8 +33,6 @@ store.dispatch(getImage()); // <-- NEW CODE
 
 This is already going to blow up because we haven't wired up any action creators yet, so `getImage()` is undefined.
 
-**[SNIPPET#1]**
-
 ```js
 // actions/index.js  
 
@@ -215,7 +213,7 @@ const initialState = {
     explanation: '',
     hdurl: '',
     title: '',
-  }
+  },
   error: null,
 }
 ```
