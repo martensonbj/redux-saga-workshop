@@ -341,7 +341,9 @@ We'll also need a testing directory.
 mkdir src/__tests__ && touch src/__tests__/asyncActions.test.js
 ```
 
-There's quite a bit to set up here. First, add the dependencies and set up some variables to mock out our application.
+There's quite a bit to set up here. We essentially need to mock out our entire redux store because the middleware is so engrained in our fetch call.
+
+First, add the dependencies and set up some variables to mock out our application.
 
 ```js
 // src/__tests__/asyncActions.test.js
@@ -401,17 +403,19 @@ describe('getImage', () => {
     fetchMock.restore();
   });
 
-  it('fires off requestImage when action is dispatched', () => {
+  it('dispatches REQUEST_IMAGE action when getImage is fired', () => {
     fetchMock.get('*', {
       status: 200,
     });
 
     const store = mockStore({
-      image: {
-        loading: false,
-        data: {},
-        error: null,
-      }
+      loading: false,
+      data: {
+        explanation: '',
+        hdurl: '',
+        title: ''
+      },
+      error: null
     })
 
     const expectedActions = [
@@ -431,7 +435,7 @@ Add another test to make sure our `setImage()` action fires with a successful re
 
 ```js
 
-it('fires off setImage with a valid response', () => {
+it('dispatches SET_IMAGE when data is received', () => {
   fetchMock.get('*', {
     status: 200,
     body: {
@@ -441,11 +445,13 @@ it('fires off setImage with a valid response', () => {
   });
 
   const store = mockStore({
-    image: {
-      loading: false,
-      data: {},
-      error: null,
-    }
+    loading: false,
+    data: {
+      explanation: '',
+      hdurl: '',
+      title: ''
+    },
+    error: null
   })
 
   const expectedActions = [
@@ -464,22 +470,35 @@ it('fires off setImage with a valid response', () => {
 Finally let's cover our bases and write a test in case our fetch request fails.
 
 ```js
-it('fires off catchError with an invalid response', () => {
+it('dispatches ERROR if the call is unsuccessful', () => {
   fetchMock.get('*', {
-    status: 500
+    status: 500,
+    body: {
+      error: {
+        code: 'THINGS WENT WRONG',
+        message: 'because I said so'
+      }
+    }
   });
 
   const store = mockStore({
-    image: {
-      loading: false,
-      data: {},
-      error: null,
-    }
+    loading: false,
+    data: {
+      explanation: '',
+      hdurl: '',
+      title: ''
+    },
+    error: null
   })
 
   const expectedActions = [
     { type: 'REQUEST_IMAGE' },
-    { error: new Error('Bad response from server'), type: 'ERROR' },
+    { type: 'ERROR',
+      error: {
+        code: 'THINGS WENT WRONG',
+        message: 'because I said so'
+      }
+    }
   ]
 
   store.dispatch(actions.getImage()).then(() => {
