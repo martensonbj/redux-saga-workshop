@@ -4,10 +4,11 @@
   "private": true,
   "dependencies": {
     "classnames": "^2.2.5",
-    "firebase": "^4.1.1",
     "react": "^15.5.4",
-    "react-css-modules": "^4.3.0",
-    "react-dom": "^15.5.4"
+    "react-dom": "^15.5.4",
+    "react-redux": "^5.0.5",
+    "redux": "^3.6.0",
+    "redux-devtools-extension": "^2.13.2"
   },
   "devDependencies": {
     "react-scripts": "1.0.7"
