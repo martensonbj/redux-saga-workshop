@@ -2,7 +2,7 @@
 
 We'll be starting from a boilerplate that already has the structure of a Redux app built out so we can dig straight into the meat of this workshop. I'll be using `npm` commands for my live-coding, but if `yarn` is your jam that's cool too.
 
-Clone down this repository and **CHECK OUT THE BRANCH `start`**, run `npm install`, and `npm start` to see what we've got going on. Let's take a quick walk through of how our directory is set up.
+Clone down this repository, run `npm install`, and `npm start` to see what we've got going on. Let's take a quick walk through of how our directory is set up.
 
 While we get started, please also take a minute to visit the [Nasa Open API](https://api.nasa.gov/index.html#apply-for-an-api-key)  website and apply for an API key - this should be sent to your email address momentarily.  
 
