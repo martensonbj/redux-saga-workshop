@@ -2,7 +2,7 @@
 
 ## Setup
 
-We'll be starting from a boilerplate that already has the structure of a Redux app built out so we can dig straight into the meat of this workshop. I'll be using `npm` commands for my live-coding, but if `yarn` is your jam that's cool too.
+We'll be starting from a boilerplate that already has the structure of a Redux app built out so we can dig straight into the meat of this workshop. I'll be using `npm` commands for my   live-coding, but if `yarn` is your jam that's cool too.
 
 Clone down this repository, run `npm install`, and `npm start` to see what we've got going on. Let's take a quick walk through of how our directory is set up.
 
@@ -32,8 +32,6 @@ store.dispatch(getImage()); // <-- NEW CODE
 ```
 
 This is already going to blow up because we haven't wired up any action creators yet, so `getImage()` is undefined.
-
-**[SNIPPET#1]**
 
 ```js
 // actions/index.js  
@@ -281,7 +279,7 @@ import './styles.css';
 const App = ({ image }) => {
   if ( image.error ) {
     return (
-      <div>
+      <div className="App--error">
         <h2>{image.error.code}</h2>
         <p>{image.error.message}</p>
       </div>
