@@ -1,5 +1,4 @@
 const handleErrors = (json) => {
-  console.log(json);
     if (json.error) {
       throw { message: json.error.message, code: json.error.code}
     }

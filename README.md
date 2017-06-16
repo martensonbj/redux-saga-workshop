@@ -975,7 +975,7 @@ import { catchError, requestImage, setImage } from './actions'
 // Grab our fetch function (that we haven't made yet)
 import { fetchImage } from './fetch'
 
-// ---- additional code ---- //
+// ---- existing code ---- //
 
   export function* getImageAsync(action) {
     console.log(action)
@@ -986,6 +986,7 @@ import { fetchImage } from './fetch'
     // Make our async call to fetch
     const data = yield call(fetchImage);
 
+    // If we're getting back what we want
     if (data && !data.error) {
 
       // Dispatch the 'SET_IMAGE' data to the store to do something with our API results
@@ -999,7 +1000,7 @@ import { fetchImage } from './fetch'
   }
 
 
-  // ---- additional code ---- //
+  // ---- existing code ---- //
 ```
 
 If you look at your browser, you'll see that error.  
@@ -1013,26 +1014,28 @@ touch src/fetch.js
 ```js
 // fetch.js
 
-const handleErrors = (response) => {
-    if (!response.ok) {
-      throw Error(response.statusText);
+const handleErrors = (json) => {
+    if (json.error) {
+      throw { message: json.error.message, code: json.error.code}
     }
-    return response.json();
+    return json;
 }
 
 export const fetchImage = () => (
   fetch('https://api.nasa.gov/planetary/apod?api_key=EFZIxlP9Ry5aV1KIjYZilvSLqziN5RBOJicPD8W9')
   .then(response =>  response.json())
-  .then(json => json)
+  .then(json => handleErrors(json))
   .catch(error => error)
 );
 ```
 
 Don't forget to import this file in `sagas.js`.  
 
-Throw a few console logs at the end of this file to watch how the saga progresses:
+Throw a few console logs at the end of your sagas file to watch how the saga progresses:
 
 ```js
+// src/sagas.js  
+
 const gen = getImageAsync();
 console.log(gen.next());
 console.log(gen.next());
