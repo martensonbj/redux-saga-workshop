@@ -1,6 +1,8 @@
+# Redux Saga WorkShop: Dinosaur.js 2017
+
 ## Setup
 
-We'll be starting from a boilerplate that already has the structure of a Redux app built out so we can dig straight into the meat of this workshop. I'll be using `npm` commands for my live-coding, but if `yarn` is your jam that's cool too.
+We'll be starting from a boilerplate that already has the structure of a Redux app built out so we can dig straight into the meat of this workshop. I'll be using `npm` commands for my   live-coding, but if `yarn` is your jam that's cool too.
 
 Clone down this repository, run `npm install`, and `npm start` to see what we've got going on. Let's take a quick walk through of how our directory is set up.
 
@@ -9,6 +11,8 @@ While we get started, please also take a minute to visit the [Nasa Open API](htt
 **I suggest you paste this API key somewhere handy for the next couple hours for copy/paste convenience**  
 
 As mentioned during the intro to this workshop, the Redux workflow revolves around the Redux `store`. The entire goal of this baby app is to fetch a daily image from the Nasa website as soon as the application loads. To do this, we need our app to dispatch an action to make that API call which will then modify state and re render the components that care.  
+
+![screenshot](./assets/screenshot.png);
 
 Let's start by wiring up this first, immediate dispatch to fetch an image as soon as the app starts up.  
 
@@ -28,8 +32,6 @@ store.dispatch(getImage()); // <-- NEW CODE
 ```
 
 This is already going to blow up because we haven't wired up any action creators yet, so `getImage()` is undefined.
-
-**[SNIPPET#1]**
 
 ```js
 // actions/index.js  
@@ -211,7 +213,7 @@ const initialState = {
     explanation: '',
     hdurl: '',
     title: '',
-  }
+  },
   error: null,
 }
 ```
@@ -277,7 +279,7 @@ import './styles.css';
 const App = ({ image }) => {
   if ( image.error ) {
     return (
-      <div>
+      <div className="App--error">
         <h2>{image.error.code}</h2>
         <p>{image.error.message}</p>
       </div>
@@ -427,8 +429,11 @@ it('dispatches SET_IMAGE when data is received', () => {
   fetchMock.get('*', {
     status: 200,
     body: {
-      url: '',
-      stuff: ''
+      data: {
+        explanation: 'stuff',
+        hdurl: 'things',
+        title: 'pie'
+      },
     }
   });
 
@@ -444,7 +449,7 @@ it('dispatches SET_IMAGE when data is received', () => {
 
   const expectedActions = [
     { type: 'REQUEST_IMAGE' },
-    { type: 'SET_IMAGE', data: {"stuff": "", "url": ""} },
+    { type: 'SET_IMAGE', data: { explanation: 'stuff', hdurl: 'things', title: 'pie' } },
   ]
 
   store.dispatch(actions.getImage()).then(() => {
