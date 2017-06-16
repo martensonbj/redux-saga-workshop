@@ -1,35 +1,14 @@
-<!-- TO DO LIST:
-3) Finish final product screen shot
-5) Work through README once timed
-6) Clean up/Follow up
-7) Make sure the final CSS file gets moved into START
-8) WHY ERROR.ERROR HOW DO YOU OBJECT ASSIGN NESTED OBJECTS
-10) Why Redux Saga instead of Thunk? what'st he benefit?
-
-CLEAN UP COMMENTS ON ALL BRANCHES
-Grab a back up API in case NASA API keys are an issue
--->
-
-<!-- SLIDES
-  - Architecture of a Redux app
-  - Role of Middleware
-  - Finished product/What we are building
--->
-
-<!-- FOLLOW UP:
-  - talk about using `import { delay } from redux-saga`
--->
-
+# Redux Saga Workshop: Dinosar.js 2017
 
 ## Setup
 
 We'll be starting from a boilerplate that already has the structure of a Redux app built out so we can dig straight into the meat of this workshop. I'll be using `npm` commands for my live-coding, but if `yarn` is your jam that's cool too.
 
-Clone down this repository and **CHECK OUT THE BRANCH `start`**, run `npm install`, and `npm start` to see what we've got going on. Let's take a quick walk through of how our directory is set up.
+Clone down this repository, run `npm install`, and `npm start` to see what we've got going on. Let's take a quick walk through of how our directory is set up.
 
 While we get started, please also take a minute to visit the [Nasa Open API](https://api.nasa.gov/index.html#apply-for-an-api-key)  website and apply for an API key - this should be sent to your email address momentarily.  
 
-*I suggest you paste this API key somewhere handy for the next couple hours for copy/paste convenience*  
+**I suggest you paste this API key somewhere handy for the next couple hours for copy/paste convenience**  
 
 As mentioned during the intro to this workshop, the Redux workflow revolves around the Redux `store`. The entire goal of this baby app is to fetch a daily image from the Nasa website as soon as the application loads. To do this, we need our app to dispatch an action to make that API call which will then modify state and re render the components that care.  
 
@@ -132,6 +111,7 @@ export const getImage = () => (
       if (!json.error) {
         dispatch(setImage(json))
       } else {
+        // eslint-disable-next-line
         throw {message: json.error.message, code: json.error.code}
       }
     })
@@ -258,7 +238,7 @@ const image = (state = initialState, action) => {
     case `REQUEST_IMAGE` :
       return Object.assign({}, state, { loading: true })
     case `SET_IMAGE` :
-      return Object.assign({}, state, { data: action.data })
+      return Object.assign({}, state, { loading: false, data: action.data })
     case `ERROR` :
       return Object.assign({}, state, { error: action.error })
     default :
@@ -287,7 +267,7 @@ const mapStateToProps = ({ image }) => ({
 export default connect(mapStateToProps, null);
 ```
 
-...And flesh out our component so that it can receive information from the container we want access to
+...And flesh out our component so that it can receive information from the container we want access to, and handle what to do while we're breaking stuff in between.
 
 ```js
 // components/App/index.js
@@ -302,6 +282,16 @@ const App = ({ image }) => {
       <div>
         <h2>{image.error.code}</h2>
         <p>{image.error.message}</p>
+      </div>
+    )
+  }
+
+  if ( image.loading || !image.error && !image.data.hdurl ) {
+    return (
+      <div className="App--pending">
+        <img  height='75'           src="https://vignette3.wikia.nocookie.net/landbeforetime/images/3/32/Ducky%27s_Offcial_TLBT_Website_Art.jpg/revision/latest/scale-to-width-down/350?cb=20130912041058" alt="Ducky" />
+        <p>You should not eat talking trees. Nope, nope, nope.</p>
+        <small>[Loading...]</small>
       </div>
     )
   }
@@ -341,7 +331,9 @@ We'll also need a testing directory.
 mkdir src/__tests__ && touch src/__tests__/asyncActions.test.js
 ```
 
-There's quite a bit to set up here. First, add the dependencies and set up some variables to mock out our application.
+There's quite a bit to set up here. We essentially need to mock out our entire redux store because the middleware is so engrained in our fetch call.
+
+First, add the dependencies and set up some variables to mock out our application.
 
 ```js
 // src/__tests__/asyncActions.test.js
@@ -401,17 +393,19 @@ describe('getImage', () => {
     fetchMock.restore();
   });
 
-  it('fires off requestImage when action is dispatched', () => {
+  it('dispatches REQUEST_IMAGE action when getImage is fired', () => {
     fetchMock.get('*', {
       status: 200,
     });
 
     const store = mockStore({
-      image: {
-        loading: false,
-        data: {},
-        error: null,
-      }
+      loading: false,
+      data: {
+        explanation: '',
+        hdurl: '',
+        title: ''
+      },
+      error: null
     })
 
     const expectedActions = [
@@ -431,7 +425,7 @@ Add another test to make sure our `setImage()` action fires with a successful re
 
 ```js
 
-it('fires off setImage with a valid response', () => {
+it('dispatches SET_IMAGE when data is received', () => {
   fetchMock.get('*', {
     status: 200,
     body: {
@@ -441,11 +435,13 @@ it('fires off setImage with a valid response', () => {
   });
 
   const store = mockStore({
-    image: {
-      loading: false,
-      data: {},
-      error: null,
-    }
+    loading: false,
+    data: {
+      explanation: '',
+      hdurl: '',
+      title: ''
+    },
+    error: null
   })
 
   const expectedActions = [
@@ -464,22 +460,35 @@ it('fires off setImage with a valid response', () => {
 Finally let's cover our bases and write a test in case our fetch request fails.
 
 ```js
-it('fires off catchError with an invalid response', () => {
+it('dispatches ERROR if the call is unsuccessful', () => {
   fetchMock.get('*', {
-    status: 500
+    status: 500,
+    body: {
+      error: {
+        code: 'THINGS WENT WRONG',
+        message: 'because I said so'
+      }
+    }
   });
 
   const store = mockStore({
-    image: {
-      loading: false,
-      data: {},
-      error: null,
-    }
+    loading: false,
+    data: {
+      explanation: '',
+      hdurl: '',
+      title: ''
+    },
+    error: null
   })
 
   const expectedActions = [
     { type: 'REQUEST_IMAGE' },
-    { error: new Error('Bad response from server'), type: 'ERROR' },
+    { type: 'ERROR',
+      error: {
+        code: 'THINGS WENT WRONG',
+        message: 'because I said so'
+      }
+    }
   ]
 
   store.dispatch(actions.getImage()).then(() => {
@@ -506,21 +515,28 @@ Let's look back at the action creator that `redux-thunk` steps in to handle :
 export const getImage = () => (
   dispatch => {
     dispatch(requestImage());
-    return fetch('https://api.nasa.gov/planetary/apod?api_key=YOUR-API-KEY-HERE')
+    return fetch('https://api.nasa.gov/planetary/apod?api_key=YOUR_API_KEY_HERE')
     .then(response => response.json())
-    .then(json => dispatch(setImage(json)))
+    .then(json => {
+      if (!json.error) {
+        dispatch(setImage(json))
+      } else {
+        // eslint-disable-next-line
+        throw {message: json.error.message, code: json.error.code}
+      }
+    })
     .catch(error => dispatch(catchError(error)))
-  };
+  }
 );
 ```  
 
-In this function we are trying to accomplish a list of different things:  
+In this function we are trying to accomplish a variety of different things:  
 
 1. Dispatch an action to tell redux that we have started our request (to trigger a loader/spinner)  
-2. Send out the fetch request
-3. Check to see if we receive a valid response
-4. If yes: Dispatch an action to set the image
-5. If no: Dispatch an action to do something with the error
+2. Send out the fetch request  
+3. Check to see if we receive a valid response  
+4. If yes: Dispatch an action to set the image  
+5. If no: Dispatch an action to do something with the error  
 
 That's a lot for one function. No part of that is single responsibility and it feels gross.  
 
@@ -542,7 +558,7 @@ touch src/sagas.js
 
 In this file we will put all of the side-effects that we expect our application to fire off. One benefit to this off the bat is it keeps all of the messy stuff in one centralized location.  
 
-Before we start implementing this new code, let's take a moment to break some stuff by refactoring our main `src/index.js` file to tell our store to grab the `redux-saga` library when it's first created, instead of `redux-thunk`.
+Before we start implementing this new code, let's break some stuff by refactoring our main `src/index.js` file. We need to tell our store to grab the `redux-saga` library when it's first created, instead of `redux-thunk`.
 
 ```js
 // src/index.js
@@ -560,9 +576,9 @@ import sagas from './sagas';
 import App from './components/App';
 import registerServiceWorker from './registerServiceWorker';
 import rootReducer from './reducers';
-import { getImage } from './actions';
-
 import './styles.css';
+
+import { getImage } from './actions';
 
 const sagaMiddleware = createSagaMiddleware();
 
@@ -599,7 +615,7 @@ export default function* testSaga() {
 
 ```
 
-So we should see our `console.log()` statement, but we're also back to our middleware error message. This is because we fire off the line that says `sagaMiddleware.run(sagas);`, and then we immediately dispatch our async action, but we've removed the library (`redux-thunk`) that worked its secret magic to intercept this function before it hits redux.
+So now we should see our `console.log()` statement, but we're also back to our middleware error message. This is because we fire off that line that says `sagaMiddleware.run(sagas);`, and then we immediately dispatch our async action, but we've removed the library (`redux-thunk`) that worked the secret magic to intercept this function.  
 
 Before we get further into Sagas and fix this error, let's sidetrack a little bit into what a Generator is.  
 
@@ -614,13 +630,15 @@ function* doSomething() {
 }
 ```
 
-There are a few things to note here. First, generator functions are indicated with an asterisk. (Note: The asterisk can be next to either the keyword `function*` or the function name `*doSomething` and the function will still be recognized as a generator.)   
+There are a few things to note here.  
 
-Second, the content within the function starts with a `yield expression`. This is what tells the generator to pause.  
+First, generator functions are indicated with an asterisk. (Note: The asterisk can be next to either the keyword `function*` or the function name `*doSomething` and the function will still be recognized as a generator.)  
 
-Once the generator function is called, it will only execute the code up until it encounters the keyword `yield`. This tells the generator function to return whatever is to the right of the yield, and then chill until told to continue.  
+Second, the special content within the function starts with a `yield expression`. This is what tells the generator to pause.  
 
-After executing the code to the right of the first yield, it won't just fire at will, it will wait to continue until you tell it to fire the next line, which is done using a `Generator Iterator`.  
+Third, once the generator function is called, it will only execute code up until it encounters the keyword `yield`. This tells the generator function to return whatever is to the right of the yield, and then chill out until told to continue.  
+
+Finally, after executing the code to the right of the first yield, it won't just fire at will, it will wait to continue until you tell it to fire the next line, which is done using a `Generator Iterator`.  
 
 **TRY IT OUT**
 
@@ -667,7 +685,7 @@ You should see something print like:
 Object {value: 'You are a spiketail...', done: false}
 ```
 
-Instead of simply the string of our first yield expression, we get an object with the *value* of our iteration (`You are a spiketail...`), and a *done* boolean indicating if our function has finished executing (`false`).  
+Instead of simply getting back the string of our first yield expression, we get an object with two keys - the *value* of our iteration (`You are a spiketail...`), and a *done* boolean indicating if our function has finished executing (`false`).  
 
 And now it waits.  
 
@@ -722,11 +740,11 @@ gen.next()
 gen.next()
 ```
 
-You'll notice after 3 executions the code hops into the `moreNums()` function, runs the line that returns `3` and then just HANGS OUT. It doesn't just FIRE EVERYTHING all at once.  
+You'll notice after 3 executions the code hops into the `moreNums()` function, runs the line that returns `3` and then just HANGS OUT. It doesn't just FIRE EVERYTHING all willy nilly.  
 
 This is the epitome of why generators are so helpful when we are dealing with async code. Typically we have very little control over what happens in between when something sends out an API call and when it moves on with that returned information.  
 
-As we saw in our redux-thunk example earlier, all we know is we fire the thing, then get the response back and it either works or blows up. What if we could step into that series of events and do more?  
+As we saw in our redux-thunk example earlier, all we know is we fire the thing, then get the response back. It either works or blows up. What if we could step into that series of events and do more?  
 
 ## 2 Way Communication with Generators  
 
@@ -751,9 +769,9 @@ What happens if you run `sum.next()` a second time?
 
 Take a second to think about this before you try it in your console.  
 
-What happens is your generator runs every line of code until it encounters its first `yield expression`. It then fires off whatever is to the *right* of the keyword `yield`, (in this case, it looks for where the variable `result` was defined, which is `2`) and then waits.  
+What happens is your generator runs every line of code until it encounters its first `yield expression`. It then fires off whatever is to the *right* of the keyword `yield`, (in this case, it looks for where the variable `result` was defined, which is `1 + 1`) and then it *waits*.  
 
-When you run it again, it has replaced `yield result` with whatever has been passed INTO the second `sum.next()` function, which (most likely) was nothing in your console logging attempt above.  
+When you run it again, it has replaced `yield result` with whatever has been passed INTO the second `sum.next()` function, which (most likely) was nothing.  
 
 If you ran the code exactly as listed above, you should have seen something like:  
 
@@ -801,9 +819,16 @@ export const getImage = () => (
     dispatch(requestImage());
     return fetch('https://api.nasa.gov/planetary/apod?api_key=YOUR-API-KEY-HERE')
     .then(response => response.json())
-    .then(json => dispatch(setImage(json)))
+    .then(json => {
+      if (!json.error) {
+        dispatch(setImage(json))
+      } else {
+        // eslint-disable-next-line
+        throw {message: json.error.message, code: json.error.code}
+      }
+    })
     .catch(error => dispatch(catchError(error)))
-  };
+  }
 );
 ```
 
@@ -818,6 +843,11 @@ export const getImage = () => ({
 Now our `dispatch` method fires off a plain action object, instead of the multi-job async fetch call/function/craziness. FINALLY we can set up a Saga to step in and handle each intermediate step line by line.
 
 We will start by leveraging something called a Saga Effect. These effects are part of the Redux Saga library and are standing guard, waiting to be put to use when a particular redux action is triggered.
+
+A few we will talk about today are:  
+* `takeEvery` - 'WATCH for something specific'  
+* `put` - 'dispatch an action to the redux store'
+* `call` - 'make some sort of API call'
 
 First, we need to add a function that uses the Saga effect `takeEvery`. This effect is the most like redux-thunk. It's job is to hang out and listen for whatever action has been dispatched, intercepting that action if it matches the specified type.  
 
@@ -860,11 +890,13 @@ export default function* rootSaga() {
 
 ## Saga Effects
 
-Redux Sagas provide us with a few different "effects" and helper methods that scoot things along. We just used `takeEvery`, which "takes" "every" action that matches a pattern it's been given and fires off the next saga when that pattern is matched. Additionally, as we indicated with our `console.log(action)` it appends the ACTION that was fired as the third argument to the function.
+Redux Sagas provide us with a few different "effects" and helper methods that scoot things along. We just used `takeEvery`, which "takes" "every" action that matches a pattern it's been given and fires off the next saga when that pattern is matched.  
 
-The next two we will implement are:  
+Additionally, as we indicated with our `console.log(action)` it appends the ACTION that was fired as the third argument to the function.
 
-* `put`
+The next two we will look at are:  
+
+### `put`
   - Example: `yield put(requestImage())`
   - Tells the middleware to dispatch an action to the redux store.
   - Returns an object of instructions
@@ -882,7 +914,7 @@ done: false
 }
 ```
 
-* `call`
+### `call`  
   - Example: `yield call(fetchImage, ...args)`
   - Used when we need to get data asynchronously, and might need to do some stuff in between (like when you use `fetch` to make an API call)
   - Takes two arguments - a callback, and an optional spread of additional arguments   
@@ -913,18 +945,19 @@ So now let's do something with the `getImageAsync` function we fired off. In thi
 
 To review, we want to:  
 1. Tell redux we are requesting an image, so do the Loader thing.  
-2. Fetch the image in the meantime  
-3. Figure out what to do if stuff breaks  
+2. Fetch the image in the meantime
+3. Store the image in state if things go well
+4. Figure out what to do if stuff breaks  
 
 ```js
 // sagas.js
 import { call, put, takeEvery, all } from 'redux-saga/effects';
 // Pull in our action creators
 import { catchError, requestImage, setImage } from './actions'
-// Grab our fetch function that we haven't made yet
+// Grab our fetch function (that we haven't made yet)
 import { fetchImage } from './fetch'
 
-// ---- additional code ---- //
+// ---- existing code ---- //
 
   export function* getImageAsync(action) {
     console.log(action)
@@ -935,6 +968,7 @@ import { fetchImage } from './fetch'
     // Make our async call to fetch
     const data = yield call(fetchImage);
 
+    // If we're getting back what we want
     if (data && !data.error) {
 
       // Dispatch the 'SET_IMAGE' data to the store to do something with our API results
@@ -947,14 +981,13 @@ import { fetchImage } from './fetch'
     }
   }
 
-  export function* watchGetImage() {
-    yield takeEvery('INITIALIZE_IMAGE_SAGA', getImageAsync);
-  }
 
-  // ---- additional code ---- //
+  // ---- existing code ---- //
 ```
 
-In the `getImageAsync()` we run a `call`, firing off the `fetchImage` function. This allows us to isolate any fetch requests. Let's say we have a big app - it might make sense to put all of our fetch requests in their own file.
+If you look at your browser, you'll see that error.  
+
+In the `getImageAsync()` we run a `call` effect, firing off `fetchImage`. This allows us to isolate any fetch requests. Let's say we have a big app - it might make sense to put all of our fetch requests in their own file. Let's go ahead and do that.  
 
 ```bash
 touch src/fetch.js
@@ -963,26 +996,29 @@ touch src/fetch.js
 ```js
 // fetch.js
 
-const handleErrors = (response) => {
-    if (!response.ok) {
-      throw Error(response.statusText);
+const handleErrors = (json) => {
+    if (json.error) {
+      // eslint-disable-next-line
+      throw { message: json.error.message, code: json.error.code}
     }
-    return response.json();
+    return json;
 }
 
 export const fetchImage = () => (
-  fetch('https://api.nasa.gov/planetary/apod?api_key=EFZIxlP9Ry5aV1KIjYZilvSLqziN5RBOJicPD8W9')
+  fetch('https://api.nasa.gov/planetary/apod?api_key=YOUR-API-KEY-HERE')
   .then(response =>  response.json())
-  .then(json => json)
+  .then(json => handleErrors(json))
   .catch(error => error)
 );
 ```
 
 Don't forget to import this file in `sagas.js`.  
 
-Throw a few console logs at the end of this file to watch how the saga progresses:
+Throw a few console logs at the end of your sagas file to watch how the saga progresses:
 
 ```js
+// src/sagas.js  
+
 const gen = getImageAsync();
 console.log(gen.next());
 console.log(gen.next());
@@ -998,7 +1034,7 @@ First of all, if you run the existing tests now you'll get some errors. This is 
 
 This also means that now we can isolate what we're testing in a more specific way because our `actions/index.js` file now ONLY contains plain old action creators and return plain old action objects, which are ridiculously easy to test.
 
-Hop into the `__tests__/asyncActions.js` file and skip that first `describe()` block, for now, and create a couple quick files to demonstrate the ease of testing clean redux action creators/reducers:  
+Hop into the `__tests__/asyncActions.js` file and skip that first `describe()` block, then create a couple quick files to demonstrate the ease of testing clean redux action creators/reducers with sagas:  
 
 ```bash
 touch src/__tests__/actions.test.js src/__tests__/reducers.test.js src/__tests__/sagas.test.js
@@ -1065,9 +1101,9 @@ describe('image reducer', () => {
 
 Lucky for us, testing sagas isn't much more complicated.  
 
-To set up this testing file, we need to grab all of the things associated with our sagas. The beauty of using Sagas is that we are now dealing with ES6 Generator functions. We can now run each line of code and test each specific `yield expression` to ensure that we are getting back that plain old JS object with the value we expect.  
+The only cumbersome bit is we need to grab all of the things associated with our sagas. The beauty is that we are now dealing with ES6 Generator functions. This means we can run each line of code and test each specific `yield expression` to ensure that we are getting back that plain old JS object with the value we expect.  
 
-Let's start with our first example `*testSaga()` generator function to see what this looks like.
+Let's start with our first simple generator example `*testSaga()` to see what this looks like.
 
 ```js
 // __tests__/sagas.test.js
@@ -1075,15 +1111,15 @@ Let's start with our first example `*testSaga()` generator function to see what 
 import { takeEvery } from 'redux-saga';
 import { call, put, take } from 'redux-saga/effects';
 
-import { requestImage, setImage, handleError } from '../actions';
+import { requestImage, setImage, catchError } from '../actions';
 import { fetchImage } from '../fetch';
 
 import { testSaga, getImageAsync, watchGetImage } from '../sagas';
 
 describe('test saga', () => {
-  const generator = testSaga();
 
   it('calls the test saga function', () => {
+    const generator = testSaga();
     const testValue = generator.next().value;
 
     expect(testValue).toEqual('WIRED UP!');
@@ -1091,7 +1127,9 @@ describe('test saga', () => {
 });
 ```
 
-That one doesn't have a whole lot going on though so let's add another describe block for the `getImageAsync()` generator to see if it gets more complicated.
+This function only has one yield expression, so we only need to iterate over it once, and assert that we get the value back we expect once.  
+
+Let's add another describe block for the `getImageAsync()` generator to see if it gets more complicated.
 
 
 ```js
@@ -1108,9 +1146,15 @@ describe('getImageAsync', () => {
 });
 ```
 
-You'll notice our test fails. This is because `setImage(data)` needs data! It gets that data from the result of the previous `yield expression`. Think back to that concept of 2 way communication within generators - right now because we are in a fake testing environment, we have to manually run each `generator.next().value` line, the saga library isn't doing that for us.
+WHAAAAT. It failed!
 
-We can TELL OUR GENERATOR 'hey - let's pretend this is what you got back after that last yield expression. Carry on and make sure the rest of the instructions make sense.'. We're essentially stubbing in whatever we want to get back from our API call, and letting our generator move along.  
+That was on purpose.
+
+Look at that third assertion - remember that if things go well, `setImage(data)` needs data! (If you look closely at the failed test you'll notice it's triggering our ERROR action...so technically it's following orders.)
+
+The `setImage(data)` gets that data from the result of the previous `yield expression`. Think back to that concept of 2 way communication within generators - right now because we are in a fake testing environment, we have to manually run each `generator.next().value` line, the saga library isn't doing that for us. But this gives us lots of control.
+
+So now we can just TELL OUR GENERATOR whats up. Like 'hey - let's pretend this is what you got back after that last yield expression. Carry on and make sure the rest of the instructions make sense.'. We're essentially stubbing in whatever we want to get back from our API call, and letting our generator move along.  
 
 ```js
  // Pass data into our generator iterator when we need it to be accessible
@@ -1125,7 +1169,7 @@ it('handles an unsuccessful function', () => {
   const generator = getImageAsync();
 
   const error = {
-    error: 'BROKE STUFF'
+    code: 'BROKE STUFF'
   }
 
   expect(generator.next().value).toEqual(put(requestImage()), 'makes a dispatch to request image ');
@@ -1134,6 +1178,7 @@ it('handles an unsuccessful function', () => {
 });
 ```
 
+BAM.  
 
 ### Resources
 
