@@ -287,7 +287,7 @@ const mapStateToProps = ({ image }) => ({
 export default connect(mapStateToProps, null);
 ```
 
-...And flesh out our component so that it can receive information from the container we want access to
+...And flesh out our component so that it can receive information from the container we want access to, and handle what to do while we're breaking stuff in between.
 
 ```js
 // components/App/index.js
@@ -305,6 +305,12 @@ const App = ({ image }) => {
       </div>
     )
   }
+
+  <div className="App--pending">
+    <img  height='75'           src="https://vignette3.wikia.nocookie.net/landbeforetime/images/3/32/Ducky%27s_Offcial_TLBT_Website_Art.jpg/revision/latest/scale-to-width-down/350?cb=20130912041058" alt="Ducky" />
+    <p>You should not eat talking trees. Nope, nope, nope.</p>
+    <small>[under construction]</small>
+  </div>
 
   return (
     <div className="App">
@@ -539,13 +545,13 @@ export const getImage = () => (
 );
 ```  
 
-In this function we are trying to accomplish a list of different things:  
+In this function we are trying to accomplish a variety of different things:  
 
 1. Dispatch an action to tell redux that we have started our request (to trigger a loader/spinner)  
-2. Send out the fetch request
-3. Check to see if we receive a valid response
-4. If yes: Dispatch an action to set the image
-5. If no: Dispatch an action to do something with the error
+2. Send out the fetch request  
+3. Check to see if we receive a valid response  
+4. If yes: Dispatch an action to set the image  
+5. If no: Dispatch an action to do something with the error  
 
 That's a lot for one function. No part of that is single responsibility and it feels gross.  
 
@@ -567,7 +573,7 @@ touch src/sagas.js
 
 In this file we will put all of the side-effects that we expect our application to fire off. One benefit to this off the bat is it keeps all of the messy stuff in one centralized location.  
 
-Before we start implementing this new code, let's take a moment to break some stuff by refactoring our main `src/index.js` file to tell our store to grab the `redux-saga` library when it's first created, instead of `redux-thunk`.
+Before we start implementing this new code, let's break some stuff by refactoring our main `src/index.js` file. We need to tell our store to grab the `redux-saga` library when it's first created, instead of `redux-thunk`.
 
 ```js
 // src/index.js
@@ -585,9 +591,9 @@ import sagas from './sagas';
 import App from './components/App';
 import registerServiceWorker from './registerServiceWorker';
 import rootReducer from './reducers';
-import { getImage } from './actions';
-
 import './styles.css';
+
+import { getImage } from './actions';
 
 const sagaMiddleware = createSagaMiddleware();
 
@@ -624,7 +630,7 @@ export default function* testSaga() {
 
 ```
 
-So we should see our `console.log()` statement, but we're also back to our middleware error message. This is because we fire off the line that says `sagaMiddleware.run(sagas);`, and then we immediately dispatch our async action, but we've removed the library (`redux-thunk`) that worked its secret magic to intercept this function before it hits redux.
+So now we should see our `console.log()` statement, but we're also back to our middleware error message. This is because we fire off that line that says `sagaMiddleware.run(sagas);`, and then we immediately dispatch our async action, but we've removed the library (`redux-thunk`) that worked the secret magic to intercept this function.  
 
 Before we get further into Sagas and fix this error, let's sidetrack a little bit into what a Generator is.  
 
@@ -639,13 +645,15 @@ function* doSomething() {
 }
 ```
 
-There are a few things to note here. First, generator functions are indicated with an asterisk. (Note: The asterisk can be next to either the keyword `function*` or the function name `*doSomething` and the function will still be recognized as a generator.)   
+There are a few things to note here.  
 
-Second, the content within the function starts with a `yield expression`. This is what tells the generator to pause.  
+First, generator functions are indicated with an asterisk. (Note: The asterisk can be next to either the keyword `function*` or the function name `*doSomething` and the function will still be recognized as a generator.)  
 
-Once the generator function is called, it will only execute the code up until it encounters the keyword `yield`. This tells the generator function to return whatever is to the right of the yield, and then chill until told to continue.  
+Second, the special content within the function starts with a `yield expression`. This is what tells the generator to pause.  
 
-After executing the code to the right of the first yield, it won't just fire at will, it will wait to continue until you tell it to fire the next line, which is done using a `Generator Iterator`.  
+Third, once the generator function is called, it will only execute code up until it encounters the keyword `yield`. This tells the generator function to return whatever is to the right of the yield, and then chill out until told to continue.  
+
+Finally, after executing the code to the right of the first yield, it won't just fire at will, it will wait to continue until you tell it to fire the next line, which is done using a `Generator Iterator`.  
 
 **TRY IT OUT**
 
@@ -692,7 +700,7 @@ You should see something print like:
 Object {value: 'You are a spiketail...', done: false}
 ```
 
-Instead of simply the string of our first yield expression, we get an object with the *value* of our iteration (`You are a spiketail...`), and a *done* boolean indicating if our function has finished executing (`false`).  
+Instead of simply getting back the string of our first yield expression, we get an object with two keys - the *value* of our iteration (`You are a spiketail...`), and a *done* boolean indicating if our function has finished executing (`false`).  
 
 And now it waits.  
 
@@ -747,11 +755,11 @@ gen.next()
 gen.next()
 ```
 
-You'll notice after 3 executions the code hops into the `moreNums()` function, runs the line that returns `3` and then just HANGS OUT. It doesn't just FIRE EVERYTHING all at once.  
+You'll notice after 3 executions the code hops into the `moreNums()` function, runs the line that returns `3` and then just HANGS OUT. It doesn't just FIRE EVERYTHING all willy nilly.  
 
 This is the epitome of why generators are so helpful when we are dealing with async code. Typically we have very little control over what happens in between when something sends out an API call and when it moves on with that returned information.  
 
-As we saw in our redux-thunk example earlier, all we know is we fire the thing, then get the response back and it either works or blows up. What if we could step into that series of events and do more?  
+As we saw in our redux-thunk example earlier, all we know is we fire the thing, then get the response back. It either works or blows up. What if we could step into that series of events and do more?  
 
 ## 2 Way Communication with Generators  
 
@@ -776,9 +784,9 @@ What happens if you run `sum.next()` a second time?
 
 Take a second to think about this before you try it in your console.  
 
-What happens is your generator runs every line of code until it encounters its first `yield expression`. It then fires off whatever is to the *right* of the keyword `yield`, (in this case, it looks for where the variable `result` was defined, which is `2`) and then waits.  
+What happens is your generator runs every line of code until it encounters its first `yield expression`. It then fires off whatever is to the *right* of the keyword `yield`, (in this case, it looks for where the variable `result` was defined, which is `1 + 1`) and then it *waits*.  
 
-When you run it again, it has replaced `yield result` with whatever has been passed INTO the second `sum.next()` function, which (most likely) was nothing in your console logging attempt above.  
+When you run it again, it has replaced `yield result` with whatever has been passed INTO the second `sum.next()` function, which (most likely) was nothing.  
 
 If you ran the code exactly as listed above, you should have seen something like:  
 
@@ -824,11 +832,17 @@ This line tells our redux store to dispatch an action which currently lives in o
 export const getImage = () => (
   dispatch => {
     dispatch(requestImage());
-    return fetch('https://api.nasa.gov/planetary/apod?api_key=YOUR-API-KEY-HERE')
+    return fetch('https://api.nasa.gov/planetary/apod?api_key=EFZIxlP9Ry5aV1KIjYZilvSLqziN5RBOJicPD8W9')
     .then(response => response.json())
-    .then(json => dispatch(setImage(json)))
+    .then(json => {
+      if (!json.error) {
+        dispatch(setImage(json))
+      } else {
+        throw {message: json.error.message, code: json.error.code}
+      }
+    })
     .catch(error => dispatch(catchError(error)))
-  };
+  }
 );
 ```
 
@@ -843,6 +857,11 @@ export const getImage = () => ({
 Now our `dispatch` method fires off a plain action object, instead of the multi-job async fetch call/function/craziness. FINALLY we can set up a Saga to step in and handle each intermediate step line by line.
 
 We will start by leveraging something called a Saga Effect. These effects are part of the Redux Saga library and are standing guard, waiting to be put to use when a particular redux action is triggered.
+
+A few we will talk about today are:  
+* `takeEvery` - 'WATCH for something specific'  
+* `put` - 'dispatch an action to the redux store'
+* `call` - 'make some sort of API call'
 
 First, we need to add a function that uses the Saga effect `takeEvery`. This effect is the most like redux-thunk. It's job is to hang out and listen for whatever action has been dispatched, intercepting that action if it matches the specified type.  
 

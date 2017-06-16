@@ -4,7 +4,10 @@ import { Provider } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 
-import thunk from 'redux-thunk';
+// import thunk from 'redux-thunk';
+
+import createSagaMiddleware from 'redux-saga';
+import sagas from './sagas';
 
 import App from './components/App';
 import registerServiceWorker from './registerServiceWorker';
@@ -13,13 +16,16 @@ import './styles.css';
 
 import { getImage } from './actions';
 
+const sagaMiddleware = createSagaMiddleware();
 
 const store = createStore(
   rootReducer,
   composeWithDevTools(
-    applyMiddleware(thunk)
+    applyMiddleware(sagaMiddleware)
   ),
 );
+
+sagaMiddleware.run(sagas);
 
 store.dispatch(getImage());
 

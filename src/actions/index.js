@@ -16,18 +16,22 @@ export const catchError = (error) => ({
   error
 })
 
-export const getImage = () => (
-  dispatch => {
-    dispatch(requestImage());
-    return fetch('https://api.nasa.gov/planetary/apod?api_key=EFZIxlP9Ry5aV1KIjYZilvSLqziN5RBOJicPD8W9')
-    .then(response => response.json())
-    .then(json => {
-      if (!json.error) {
-        dispatch(setImage(json))
-      } else {
-        throw {message: json.error.message, code: json.error.code}
-      }
-    })
-    .catch(error => dispatch(catchError(error)))
-  }
-);
+export const getImage = () => ({
+  type: 'INITIALIZE_IMAGE_SAGA',
+});
+
+// export const getImage = () => (
+//   dispatch => {
+//     dispatch(requestImage());
+//     return fetch('https://api.nasa.gov/planetary/apod?api_key=EFZIxlP9Ry5aV1KIjYZilvSLqziN5RBOJicPD8W9')
+//     .then(response => response.json())
+//     .then(json => {
+//       if (!json.error) {
+//         dispatch(setImage(json))
+//       } else {
+//         throw {message: json.error.message, code: json.error.code}
+//       }
+//     })
+//     .catch(error => dispatch(catchError(error)))
+//   }
+// );
