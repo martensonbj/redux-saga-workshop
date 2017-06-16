@@ -1,3 +1,5 @@
+# Redux Saga WorkShop: Dinosaur.js 2017
+
 ## Setup
 
 We'll be starting from a boilerplate that already has the structure of a Redux app built out so we can dig straight into the meat of this workshop. I'll be using `npm` commands for my live-coding, but if `yarn` is your jam that's cool too.
