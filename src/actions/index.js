@@ -4,7 +4,11 @@ export const requestImage = () => ({
 
 export const setImage = (data) => ({
   type: 'SET_IMAGE',
-  data
+  data: {
+    explanation: data.explanation,
+    hdurl: data.hdurl,
+    title: data.title
+  }
 })
 
 export const catchError = (error) => ({
@@ -14,10 +18,16 @@ export const catchError = (error) => ({
 
 export const getImage = () => (
   dispatch => {
-    dispatch(requestImage())
-    fetch('https://api.nasa.gov/planetary/apod?api_key=YOUR_API_KEY_HERE')
-    .then(response =>  response.json())
-    .then(json => dispatch(setImage(json)))
+    dispatch(requestImage());
+    return fetch('https://api.nasa.gov/planetary/apod?api_key=EFZIxlP9Ry5aV1KIjYZilvSLqziN5RBOJicPD8W9')
+    .then(response => response.json())
+    .then(json => {
+      if (!json.error) {
+        dispatch(setImage(json))
+      } else {
+        throw {message: json.error.message, code: json.error.code}
+      }
+    })
     .catch(error => dispatch(catchError(error)))
   }
 );

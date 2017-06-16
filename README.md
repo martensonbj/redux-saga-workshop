@@ -109,13 +109,17 @@ export const requestImage = () => ({
 // When we receive the image, update state and shut off the spinner
 export const setImage = (data) => ({
   type: 'SET_IMAGE',
-  data,
+  data: {
+    explanation: data.explanation,
+    hdurl: data.hdurl,
+    title: data.title
+  }
 });
 
 // If something goes wrong, do something about it.  
 export const catchError = (error) => ({
   type: 'ERROR',
-  error,
+  error
 });
 
 // Update our initial action to do those things when the situation arises.
@@ -124,9 +128,15 @@ export const getImage = () => (
     dispatch(requestImage());
     return fetch('https://api.nasa.gov/planetary/apod?api_key=YOUR-API-KEY-HERE')
     .then(response => response.json())
-    .then(json => dispatch(setImage(json)))
+    .then(json => {
+      if (!json.error) {
+        dispatch(setImage(json))
+      } else {
+        throw {message: json.error.message, code: json.error.code}
+      }
+    })
     .catch(error => dispatch(catchError(error)))
-  };
+  }
 );
 ```
 
@@ -248,10 +258,7 @@ const image = (state = initialState, action) => {
     case `REQUEST_IMAGE` :
       return Object.assign({}, state, { loading: true })
     case `SET_IMAGE` :
-      return Object.assign({}, state, {
-        loading: false,
-        data: action.data
-      })
+      return Object.assign({}, state, { data: action.data })
     case `ERROR` :
       return Object.assign({}, state, { error: action.error })
     default :
@@ -293,8 +300,8 @@ const App = ({ image }) => {
   if ( image.error ) {
     return (
       <div>
-        <h2>{image.error.error.code}</h2>
-        <p>{image.error.error.message}</p>
+        <h2>{image.error.code}</h2>
+        <p>{image.error.message}</p>
       </div>
     )
   }
@@ -303,7 +310,10 @@ const App = ({ image }) => {
     <div className="App">
       <h1>{ image.data.title }</h1>
       <p>{ image.data.explanation }</p>
-      <img src={ image.data.hdurl } />
+      <img
+        alt="Daily satellite render form the NASA api"
+        src={ image.data.hdurl }
+      />
     </div>
   );
 }
