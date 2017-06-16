@@ -23,7 +23,7 @@ export const getImage = () => ({
 // export const getImage = () => (
 //   dispatch => {
 //     dispatch(requestImage());
-//     return fetch('https://api.nasa.gov/planetary/apod?api_key=EFZIxlP9Ry5aV1KIjYZilvSLqziN5RBOJicPD8W9')
+//     return fetch('https://api.nasa.gov/planetary/apod?api_key=YOUR-API-KEY-HERE')
 //     .then(response => response.json())
 //     .then(json => {
 //       if (!json.error) {
