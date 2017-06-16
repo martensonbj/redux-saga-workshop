@@ -213,7 +213,7 @@ const initialState = {
     explanation: '',
     hdurl: '',
     title: '',
-  }
+  },
   error: null,
 }
 ```
